@@ -4,54 +4,67 @@ Bài gốc: https://website-demo-02.thcmedia.vn/blog/trang-tri-goc-phan-vai-mam-
 Bản demo: https://lanvi-commits.github.io/demo-blog-goc-phan-vai-thiet-bi-mam-non-viet-my/
 
 Trang demo là **HTML thật của bài** (header, mục lục, nội dung chữ, footer, nút liên hệ nổi giữ nguyên).
-Chỉ đổi **cách xếp các cụm ảnh mẫu** dưới 6 mục "Ý tưởng trang trí góc …". Ảnh, alt, chú thích, thứ tự ảnh
+Chỉ đổi **cách hiển thị các cụm ảnh mẫu** dưới 6 mục "Ý tưởng trang trí góc …". Ảnh, alt, chú thích, thứ tự ảnh
 và toàn bộ chữ giữ nguyên (đã so: 6.249 chữ, 40 ảnh, 40 chú thích khớp 100% với bài gốc).
 
-## Thay đổi
+## Thay đổi (v2 — 27/10/2026)
+
+Mỗi cụm ảnh mẫu dưới các mục "Ý tưởng trang trí góc …" thành **1 slider riêng cho từng góc**, không tự chạy:
 
 | Khổ màn hình | Bài hiện tại | Bản demo |
 |---|---|---|
-| Máy tính (≥ 992px) | 1 ảnh/hàng, khổ 800px, hai bên trống | **Lưới 2 cột**, mỗi ảnh ~650px. Cụm có số ảnh lẻ: ảnh đầu giữ khổ 800px, các ảnh sau xếp cặp |
-| Điện thoại + tablet (< 992px) | 1 ảnh/hàng, cuộn dọc hết từng ảnh | **Mỗi góc 1 slider**: vuốt ngang xem ảnh, ảnh sau ló ra ở mép phải, hàng nút ‹ › + chấm dưới ảnh. **Không tự chạy** |
+| Máy tính (≥ 992px) | 1 ảnh/hàng, khổ 800px, cuộn dọc hết từng ảnh | **Ảnh lớn 800px + hàng ảnh nhỏ** bên dưới (bấm ảnh nhỏ để đổi), nút ‹ › và số đếm "2 / 6" |
+| Điện thoại + tablet (< 992px) | 1 ảnh/hàng, cuộn dọc hết từng ảnh | **Vuốt ngang** xem ảnh, ảnh sau ló ra ở mép phải, hàng nút ‹ › + chấm dưới ảnh |
 
-Chiều dài trang: máy tính 34.886 → 24.124px (−31%), điện thoại 390px 30.996 → 22.809px (−26%).
+Chiều dài trang: máy tính 34.886 → 19.574px (−44%), điện thoại 390px 30.996 → 22.809px (−26%).
 
-Cụm ảnh được gom:
+Cụm ảnh được gom (chỉ gom ảnh **liền nhau**):
 
-| Mục | Ảnh liền nhau |
+| Mục | Số ảnh trong slider |
 |---|---|
 | Góc gia đình | 6 |
 | Góc bán hàng, siêu thị mini | 4 |
-| Góc nấu ăn, nhà hàng | 7 (ảnh đầu khổ lớn + 3 cặp) |
+| Góc nấu ăn, nhà hàng | 7 |
 | Góc bác sĩ | 6 |
 | Các góc nghề nghiệp | 2 (cặp cuối). 3 ảnh đầu đứng xen giữa đoạn văn, mỗi ảnh minh hoạ đoạn ngay trên → **giữ nguyên chỗ** |
-| Góc chợ quê, trò chơi dân gian | 5 (ảnh đầu khổ lớn + 2 cặp) |
+| Góc chợ quê, trò chơi dân gian | 5 |
+
+> v1 (máy tính xếp lưới 2 cột) ở commit `9af84c8`.
 
 ## Ghi chú cho DEV
 
-1. **HTML** — bọc mỗi cụm ≥ 2 `<figure class="wp-caption">` liền nhau trong khung Splide (xem `index.html`, tìm `vmx-goc`):
+1. **HTML** — bọc mỗi cụm ≥ 2 `<figure class="wp-caption">` liền nhau (xem `index.html`, tìm `vmx-goc`):
 
    ```html
-   <div class="vmx-goc splide [vmx-goc--le nếu số ảnh lẻ]" role="group" aria-label="<tên H2> – N ảnh">
-     <div class="splide__track"><ul class="splide__list">
-       <li class="splide__slide"><figure class="wp-caption">…giữ nguyên…</figure></li>
-     </ul></div>
-     <div class="splide__arrows">
-       <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-       <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+   <div class="vmx-goc">
+     <div class="vmx-goc__main splide" aria-label="<tên H2> – N ảnh">
+       <div class="splide__track"><ul class="splide__list">
+         <li class="splide__slide"><figure class="wp-caption">…giữ nguyên…</figure></li>
+       </ul></div>
+       <div class="splide__arrows">
+         <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+         <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+       </div>
      </div>
+     <div class="vmx-goc__thumbs splide" aria-label="Chọn ảnh – <tên H2>">
+       <div class="splide__track"><ul class="splide__list">
+         <li class="splide__slide"><img src="<cùng file ảnh lớn>" alt="" width="80" height="60" loading="lazy"></li>
+       </ul></div>
+     </div>
+     <p class="vmx-goc__count" aria-hidden="true">1 / N</p>
    </div>
    ```
 
+   Ảnh nhỏ dùng lại đúng file ảnh lớn (đã có trong cache), `alt=""` vì chỉ là nút chọn — alt thật nằm ở ảnh lớn.
    Làm tự động được (filter `the_content`: tìm cụm figure liền nhau trong bài) hoặc block gallery riêng cho biên tập viên.
 
 2. **CSS** — khối `<style id="vmx-change">` trong `index.html` (đặt ngay sau `single-post.css`). Có `!important` ở `figure.wp-caption`
    vì WordPress gắn inline `style="width: 800px; margin: 24px auto"`.
 
-3. **JS** — khối `<script id="vmx-page-js">`. Cách chuyển slider ↔ lưới giống hệt `.single-post-related-splide` đang có trong
-   `splide-init.js`: `mediaQuery: 'min'` + `breakpoints: { 992: { destroy: true } }`.
-   **Bắt buộc tạo bằng `window.Splide.__thcOriginal`** — `splide-autoplay.js` của theme ép `autoplay: true` cho mọi slider
-   > 1 slide (truyền `autoplay: false` cũng không tắt được). Slider ảnh có chú thích không được tự chạy.
+3. **JS** — khối `<script id="vmx-page-js">`: ảnh chính + hàng ảnh nhỏ đồng bộ bằng `main.sync(thumbs)` (Splide `isNavigation`),
+   `mediaQuery: 'min'` + breakpoint 992 bỏ ảnh ló + chấm trang. Hàng ảnh nhỏ + số đếm ẩn bằng CSS dưới 992px.
+   **Bắt buộc tạo CẢ HAI slider bằng `window.Splide.__thcOriginal`** — `splide-autoplay.js` của theme ép `autoplay: true` cho mọi
+   slider > 1 slide (truyền `autoplay: false` cũng không tắt được). Slider ảnh có chú thích không được tự chạy.
 
 4. Giữ `type: 'slide'` (không `loop` → không nhân bản ảnh trong DOM), ảnh để `src` thật (không dùng lazy riêng của Splide)
    để Google Hình ảnh vẫn thấy đủ ảnh.

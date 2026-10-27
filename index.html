@@ -2532,25 +2532,32 @@ body::-webkit-scrollbar,.thc-scroll::-webkit-scrollbar{width:10px;background-col
 </style>
 <style id="vmx-change">
 /* ============================================================================
-   Ảnh mẫu từng góc phân vai — 27/10/2026
-   Áp cho 6 nhóm ảnh dưới các H2 "Ý tưởng trang trí góc …" (gia đình 6, bán hàng 4, nấu ăn 7,
-   bác sĩ 6, nghề nghiệp 5, chợ quê 5). Ảnh, alt, chú thích giữ nguyên — chỉ đổi cách xếp.
+   Ảnh mẫu từng góc phân vai — v2, 27/10/2026
+   Áp cho các cụm ≥ 2 ảnh liền nhau dưới các H2 "Ý tưởng trang trí góc …" (gia đình 6, bán hàng 4,
+   nấu ăn 7, bác sĩ 6, nghề nghiệp 2 — cặp cuối, chợ quê 5). Ảnh, alt, chú thích giữ nguyên.
 
-   < 992px  : slider (Splide), mỗi lần 1 ảnh, ảnh sau ló ra 15% ở mép phải để báo còn ảnh;
-              nút ‹ › 44px + chấm trang nằm ở hàng dưới ảnh, không che ảnh.
-   ≥ 992px  : Splide tự tắt (breakpoints 992 → destroy, giống .single-post-related-splide)
-              → lưới 2 cột. Nhóm có số ảnh lẻ (.vmx-goc--le) thì ảnh đầu đứng riêng 1 hàng,
-              khổ 800px như bài hiện tại.
-   Màu lấy đúng bộ của slider "Bài viết liên quan" (single-post.css).
+   Mỗi cụm = .vmx-goc gồm:
+     .vmx-goc__main   slider ảnh chính (Splide) — figure gốc của bài nằm trong từng slide
+     .vmx-goc__thumbs hàng ảnh nhỏ (Splide isNavigation, đồng bộ với ảnh chính) — chỉ hiện ≥ 992px
+     .vmx-goc__count  "2 / 6" — chỉ hiện ≥ 992px
+
+   < 992px : 1 ảnh, ảnh sau ló ra 15% ở mép phải; hàng dưới ảnh = nút ‹ › 44px + chấm trang.
+   ≥ 992px : ảnh lớn 800px căn giữa; hàng dưới ảnh = ‹ + ảnh nhỏ 80×60 + › + số đếm.
+   Màu nút/chấm lấy đúng bộ của slider "Bài viết liên quan" (single-post.css).
    ========================================================================== */
 
 .content-entry .vmx-goc {
   --vmx-goc-line: #d1d5db;   /* viền nút + chấm thường — như slider bài liên quan */
-  --vmx-goc-ink: #111927;    /* mũi tên */
+  --vmx-goc-ink: #111927;    /* mũi tên, số đếm */
   --vmx-goc-accent: var(--primary_color, #d71010);
   position: relative;
-  visibility: visible;       /* splide-core ẩn .splide trước khi mount; ở máy tính Splide không chạy */
   margin: 24px 0;
+}
+
+/* .splide để static: nút ‹ ›, chấm trang, hàng ảnh nhỏ đều canh theo khung .vmx-goc */
+.content-entry .vmx-goc .splide {
+  position: static;
+  visibility: visible;       /* splide.min.css ẩn .splide trước khi mount */
 }
 
 /* Bỏ kiểu danh sách của .content-entry cho ul/li của slider */
@@ -2578,54 +2585,60 @@ body::-webkit-scrollbar,.thc-scroll::-webkit-scrollbar{width:10px;background-col
   object-fit: cover;
 }
 
-/* ---------- Điện thoại + tablet: slider ---------- */
+/* Trước khi JS chạy: xếp ngang sẵn để không nhảy bố cục */
+.content-entry .vmx-goc__main:not(.is-initialized) .splide__track { overflow: hidden; }
+.content-entry .vmx-goc__main:not(.is-initialized) .splide__list { display: flex; }
+
+/* ---------- Nút ‹ › (chung 2 khổ, vị trí khác nhau) ---------- */
+.content-entry .vmx-goc .splide__arrow {
+  position: absolute;
+  top: auto;
+  transform: none;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--vmx-goc-line);
+  background: #fff;
+  color: var(--vmx-goc-ink);
+  opacity: 1;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color .2s ease, color .2s ease, opacity .2s ease;
+}
+.content-entry .vmx-goc .splide__arrow svg { display: none; }
+.content-entry .vmx-goc .splide__arrow i { font-size: 14px; line-height: 1; }
+.content-entry .vmx-goc .splide__arrow:disabled { opacity: .4; cursor: default; }
+.content-entry .vmx-goc .splide__arrow:hover:not(:disabled) {
+  border-color: var(--vmx-goc-accent);
+  color: var(--vmx-goc-accent);
+}
+.content-entry .vmx-goc .splide__arrow:focus-visible,
+.content-entry .vmx-goc .splide__pagination__page:focus-visible,
+.content-entry .vmx-goc__thumbs .splide__slide:focus-visible {
+  outline: 2px solid var(--vmx-goc-accent);
+  outline-offset: 2px;
+}
+
+/* Ảnh nhỏ + số đếm: ẩn ở điện thoại */
+.content-entry .vmx-goc__thumbs,
+.content-entry .vmx-goc__count { display: none; }
+
+/* ---------- Điện thoại + tablet: 1 ảnh, ảnh sau ló ra, nút + chấm ---------- */
 @media (max-width: 991.98px) {
   .content-entry .vmx-goc {
     padding-bottom: 56px;    /* chừa hàng nút ‹ › + chấm */
   }
-
-  /* Trước khi JS chạy: xếp ngang sẵn để không nhảy bố cục */
-  .content-entry .vmx-goc:not(.is-initialized) .splide__track { overflow: hidden; }
-  .content-entry .vmx-goc:not(.is-initialized) .splide__list { display: flex; }
-  .content-entry .vmx-goc:not(.is-initialized) .splide__slide {
+  .content-entry .vmx-goc__main:not(.is-initialized) .splide__slide {
     flex: 0 0 85%;
     margin-right: 12px;
   }
 
-  .content-entry .vmx-goc .splide__arrows { position: static; }
-  .content-entry .vmx-goc .splide__arrow {
-    position: absolute;
-    top: auto;
-    bottom: 0;
-    transform: none;
-    z-index: 2;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    border: 1px solid var(--vmx-goc-line);
-    background: #fff;
-    color: var(--vmx-goc-ink);
-    opacity: 1;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: border-color .2s ease, color .2s ease, opacity .2s ease;
-  }
+  .content-entry .vmx-goc .splide__arrow { bottom: 0; }
   .content-entry .vmx-goc .splide__arrow--prev { left: 0; }
   .content-entry .vmx-goc .splide__arrow--next { right: 0; }
-  .content-entry .vmx-goc .splide__arrow svg { display: none; }
-  .content-entry .vmx-goc .splide__arrow i { font-size: 14px; line-height: 1; }
-  .content-entry .vmx-goc .splide__arrow:disabled { opacity: .4; cursor: default; }
-  .content-entry .vmx-goc .splide__arrow:hover:not(:disabled) {
-    border-color: var(--vmx-goc-accent);
-    color: var(--vmx-goc-accent);
-  }
-  .content-entry .vmx-goc .splide__arrow:focus-visible,
-  .content-entry .vmx-goc .splide__pagination__page:focus-visible {
-    outline: 2px solid var(--vmx-goc-accent);
-    outline-offset: 2px;
-  }
 
   .content-entry .vmx-goc .splide__pagination {
     position: absolute;
@@ -2656,27 +2669,69 @@ body::-webkit-scrollbar,.thc-scroll::-webkit-scrollbar{width:10px;background-col
   }
 }
 
-/* ---------- Máy tính: lưới 2 cột ---------- */
+/* ---------- Máy tính: ảnh lớn 800px + hàng ảnh nhỏ ---------- */
 @media (min-width: 992px) {
-  .content-entry .vmx-goc .splide__track { overflow: visible; }
-  .content-entry .vmx-goc .splide__list {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    align-items: start;
-    transform: none !important;
-  }
-  .content-entry .vmx-goc .splide__slide {
-    width: auto !important;
-    margin: 0 !important;
-  }
-  .content-entry .vmx-goc--le .splide__slide:first-child {
-    grid-column: 1 / -1;
-    justify-self: center;
-    width: 100% !important;
+  .content-entry .vmx-goc {
     max-width: 800px;
+    margin: 24px auto;
+    padding-bottom: 76px;    /* 16px cách + hàng ảnh nhỏ 60px */
   }
-  .content-entry .vmx-goc .splide__arrows { display: none; }
+  .content-entry .vmx-goc__main:not(.is-initialized) .splide__slide { flex: 0 0 100%; }
+
+  /* hàng dưới: ‹ (0–44) · ảnh nhỏ (56 → right 112) · › (right 56) · số đếm (right 0, rộng 48) */
+  .content-entry .vmx-goc .splide__arrow { bottom: 8px; }
+  .content-entry .vmx-goc .splide__arrow--prev { left: 0; }
+  .content-entry .vmx-goc .splide__arrow--next { right: 56px; }
+
+  .content-entry .vmx-goc .vmx-goc__thumbs {   /* 0,3,0 — phải thắng ".vmx-goc .splide { position: static }" */
+    display: block;
+    position: absolute;
+    left: 56px;
+    right: 112px;
+    bottom: 0;
+  }
+  .content-entry .vmx-goc__thumbs:not(.is-overflow) .splide__list { justify-content: center; }
+  .content-entry .vmx-goc__thumbs .splide__track--nav > .splide__list > .splide__slide {
+    border: 2px solid transparent;
+    border-radius: 4px;
+    overflow: hidden;
+    opacity: .55;
+    cursor: pointer;
+    transition: opacity .2s ease, border-color .2s ease;
+  }
+  .content-entry .vmx-goc__thumbs .splide__track--nav > .splide__list > .splide__slide:hover { opacity: .85; }
+  .content-entry .vmx-goc__thumbs .splide__track--nav > .splide__list > .splide__slide.is-active {
+    border-color: var(--vmx-goc-accent);
+    opacity: 1;
+  }
+  .content-entry .vmx-goc__thumbs img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    object-fit: cover;
+  }
+
+  .content-entry .vmx-goc__count {
+    display: flex;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 48px;
+    height: 60px;
+    align-items: center;
+    justify-content: flex-end;
+    margin: 0;
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+    color: var(--vmx-goc-ink);
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .content-entry .vmx-goc .splide__arrow,
+  .content-entry .vmx-goc__thumbs .splide__slide { transition: none; }
 }
 </style>
 <style id="woocommerce-product-card-css" data-href="https://website-demo-02.thcmedia.vn/wp-content/themes/thcmedia-atlas/assets/css/woocommerce-product-card.css" media="all">
@@ -2761,8 +2816,8 @@ var woocustom_reviews = {"ajaxurl":"https://website-demo-02.thcmedia.vn/wp-admin
             }
         </style>
     
-<!-- Bài "30+ mẫu trang trí góc phân vai mầm non" — bản sạch đổi cách xếp ảnh mẫu, 27/10/2026.
-     Chỉ các khối <div class="vmx-goc splide"> + <style id="vmx-change"> + <script id="vmx-page-js"> là mới;
+<!-- Bài "30+ mẫu trang trí góc phân vai mầm non" — bản sạch đổi cách xếp ảnh mẫu, 27/10/2026 (v2).
+     Chỉ các khối <div class="vmx-goc"> + <style id="vmx-change"> + <script id="vmx-page-js"> là mới;
      chữ, ảnh, alt, chú thích, header, footer giữ nguyên như site. vmx-demo-guard chỉ dùng cho file demo.
      Dựng bằng nguyen-lieu/2026-10-27_blog-goc-phan-vai-anh-build/build.py — ĐỪNG sửa tay file này. -->
 <style id="vmx-font">
@@ -4300,81 +4355,140 @@ var woocustom_reviews = {"ajaxurl":"https://website-demo-02.thcmedia.vn/wp-admin
 <h2 id="ftoc-heading-8" class="ftwp-heading">Ý Tưởng Trang Trí Góc Gia Đình</h2>
 <p>Góc gia đình mầm non nên chia thành 4 khu: khu bếp, khu bàn ăn, khu chăm em bé và khu đồ dùng trong nhà. Cách chia này tạo ra nhiều hành động nối tiếp, thay vì chỉ tập trung quanh một bộ bếp duy nhất.</p>
 <p>Đồ dùng chính gồm bếp, xoong nồi, bát đĩa, bàn ghế thấp và búp bê. Giáo viên có thể bổ sung nôi, bình sữa, tủ nhỏ hoặc giá phơi để không gian thêm sống động. Một số đạo cụ tận dụng được bìa carton, vải nỉ và các vật liệu sạch để tiết kiệm chi phí. Bộ dụng cụ nên đủ cho ít nhất 3 đến 4 trẻ thao tác cùng lúc để tránh xảy ra tình trạng trẻ phải chờ nhau khi nhập vai.</p>
-<div class="vmx-goc splide" role="group" aria-label="Ý Tưởng Trang Trí Góc Gia Đình – 6 ảnh">
-  <div class="splide__track">
-    <ul class="splide__list">
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-tre-thao-tac.webp" alt="Trẻ thao tác với đạo cụ trong góc hoạt động gia đình" width="800" height="600" /><figcaption>Đồ dùng nhỏ trên bàn tạo tình huống để trẻ phối hợp các thao tác khi nhập vai.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-chia-khu-choi.webp" alt="Góc gia đình có bàn ăn và khu chơi trên thảm" width="800" height="600" /><figcaption>Bàn, ghế và thảm phân biệt các khu chơi trong cùng một góc lớp.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-cham-bup-be.webp" alt="Trẻ chăm búp bê trong góc gia đình có vách gỗ" width="800" height="600" /><figcaption>Búp bê và chỗ ngồi riêng gợi tình huống chăm sóc em bé.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-nhieu-tre.webp" alt="Nhóm trẻ chơi gia đình với búp bê và bát đĩa" width="800" height="600" /><figcaption>Bộ đồ dùng được đặt giữa nhóm để nhiều trẻ cùng sử dụng.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-bep-ban-an.webp" alt="Góc gia đình có bếp đồ chơi và bàn ăn thấp" width="800" height="600" /><figcaption>Bếp đặt cạnh bàn ăn giúp trẻ nối các hành động chế biến và ăn uống.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/giao-vien-ho-tro-choi-gia-dinh.webp" alt="Giáo viên cùng trẻ chơi gia đình với đồ dùng nấu ăn" width="800" height="600" /><figcaption>Giáo viên hỗ trợ tình huống chơi, còn trẻ thao tác trực tiếp với đạo cụ.</figcaption></figure></li>
-    </ul>
+<div class="vmx-goc">
+  <div class="vmx-goc__main splide" aria-label="Ý Tưởng Trang Trí Góc Gia Đình – 6 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-tre-thao-tac.webp" alt="Trẻ thao tác với đạo cụ trong góc hoạt động gia đình" width="800" height="600" /><figcaption>Đồ dùng nhỏ trên bàn tạo tình huống để trẻ phối hợp các thao tác khi nhập vai.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-chia-khu-choi.webp" alt="Góc gia đình có bàn ăn và khu chơi trên thảm" width="800" height="600" /><figcaption>Bàn, ghế và thảm phân biệt các khu chơi trong cùng một góc lớp.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-cham-bup-be.webp" alt="Trẻ chăm búp bê trong góc gia đình có vách gỗ" width="800" height="600" /><figcaption>Búp bê và chỗ ngồi riêng gợi tình huống chăm sóc em bé.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-nhieu-tre.webp" alt="Nhóm trẻ chơi gia đình với búp bê và bát đĩa" width="800" height="600" /><figcaption>Bộ đồ dùng được đặt giữa nhóm để nhiều trẻ cùng sử dụng.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-bep-ban-an.webp" alt="Góc gia đình có bếp đồ chơi và bàn ăn thấp" width="800" height="600" /><figcaption>Bếp đặt cạnh bàn ăn giúp trẻ nối các hành động chế biến và ăn uống.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/giao-vien-ho-tro-choi-gia-dinh.webp" alt="Giáo viên cùng trẻ chơi gia đình với đồ dùng nấu ăn" width="800" height="600" /><figcaption>Giáo viên hỗ trợ tình huống chơi, còn trẻ thao tác trực tiếp với đạo cụ.</figcaption></figure></li>
+      </ul>
+    </div>
+    <div class="splide__arrows">
+      <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+      <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+    </div>
   </div>
-  <div class="splide__arrows">
-    <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-    <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+  <div class="vmx-goc__thumbs splide" aria-label="Chọn ảnh – Ý Tưởng Trang Trí Góc Gia Đình – 6 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-tre-thao-tac.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-chia-khu-choi.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-cham-bup-be.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-nhieu-tre.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-gia-dinh-bep-ban-an.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/giao-vien-ho-tro-choi-gia-dinh.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+      </ul>
+    </div>
   </div>
+  <p class="vmx-goc__count" aria-hidden="true">1 / 6</p>
 </div>
 <p>Từ sinh hoạt gia đình, tình huống đi mua đồ có thể nối tiếp sang vai người bán và người mua ở góc bán hàng.</p>
 <h2 id="ftoc-heading-9" class="ftwp-heading">Ý Tưởng Trang Trí Góc Bán Hàng, Siêu Thị Mini</h2>
 <p>Góc bán hàng mầm non gồm 3 thành phần chính: quầy tính tiền, kệ hàng và bộ dụng cụ mua sắm. Giáo viên nên bố trí đầy đủ các chi tiết như giỏ hàng, xe đẩy mini, ví và tiền giấy đồ chơi. Máy tính tiền, bảng giá ghi mức giá bằng các số đơn giản và biển tên sản phẩm cũng giúp trẻ nhận biết giá, tên hàng và thực hiện vai chơi dễ dàng hơn.</p>
 <p>Vỏ hộp tái chế được thành hàng hóa, kệ và quầy hàng. Tuy nhiên, giáo viên cần lưu ý rằng vỏ hộp cần được làm sạch, phơi khô và loại bỏ cạnh sắc trước khi sử dụng để đảm bảo tính an toàn cho trẻ.</p>
-<div class="vmx-goc splide" role="group" aria-label="Ý Tưởng Trang Trí Góc Bán Hàng, Siêu Thị Mini – 4 ảnh">
-  <div class="splide__track">
-    <ul class="splide__list">
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-sieu-thi-ke-rau-cu.webp" alt="Trẻ mua bán ở siêu thị mini có kệ rau củ" width="800" height="600" /><figcaption>Kệ hàng thấp giúp trẻ quan sát và lựa chọn từng loại hàng hóa.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ban-hang-quay-do-uong.webp" alt="Trẻ đóng vai mua bán tại quầy đồ uống trong lớp" width="800" height="600" /><figcaption>Quầy và bảng thực đơn tạo hai vị trí rõ ràng cho người bán và người mua.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-sieu-thi-quay-hang.webp" alt="Góc siêu thị mini có quầy bán hàng và kệ sản phẩm" width="800" height="600" /><figcaption>Quầy phía trước và hàng hóa phía sau tạo bối cảnh cửa hàng dễ nhận biết.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ban-hang-rau-cu-gia.webp" alt="Trẻ chơi bán hàng với rau củ giả ở quầy thấp" width="800" height="600" /><figcaption>Rau củ và khay hàng giúp trẻ diễn tình huống chọn hàng, trao đổi và thanh toán.</figcaption></figure></li>
-    </ul>
+<div class="vmx-goc">
+  <div class="vmx-goc__main splide" aria-label="Ý Tưởng Trang Trí Góc Bán Hàng, Siêu Thị Mini – 4 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-sieu-thi-ke-rau-cu.webp" alt="Trẻ mua bán ở siêu thị mini có kệ rau củ" width="800" height="600" /><figcaption>Kệ hàng thấp giúp trẻ quan sát và lựa chọn từng loại hàng hóa.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ban-hang-quay-do-uong.webp" alt="Trẻ đóng vai mua bán tại quầy đồ uống trong lớp" width="800" height="600" /><figcaption>Quầy và bảng thực đơn tạo hai vị trí rõ ràng cho người bán và người mua.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-sieu-thi-quay-hang.webp" alt="Góc siêu thị mini có quầy bán hàng và kệ sản phẩm" width="800" height="600" /><figcaption>Quầy phía trước và hàng hóa phía sau tạo bối cảnh cửa hàng dễ nhận biết.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ban-hang-rau-cu-gia.webp" alt="Trẻ chơi bán hàng với rau củ giả ở quầy thấp" width="800" height="600" /><figcaption>Rau củ và khay hàng giúp trẻ diễn tình huống chọn hàng, trao đổi và thanh toán.</figcaption></figure></li>
+      </ul>
+    </div>
+    <div class="splide__arrows">
+      <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+      <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+    </div>
   </div>
-  <div class="splide__arrows">
-    <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-    <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+  <div class="vmx-goc__thumbs splide" aria-label="Chọn ảnh – Ý Tưởng Trang Trí Góc Bán Hàng, Siêu Thị Mini – 4 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-sieu-thi-ke-rau-cu.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ban-hang-quay-do-uong.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-sieu-thi-quay-hang.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ban-hang-rau-cu-gia.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+      </ul>
+    </div>
   </div>
+  <p class="vmx-goc__count" aria-hidden="true">1 / 4</p>
 </div>
 <p>Sau tình huống mua hàng, trẻ có thể sử dụng nhóm thực phẩm đồ chơi để tiếp tục nhập vai chế biến và phục vụ tại góc nấu ăn.</p>
 <h2 id="ftoc-heading-10" class="ftwp-heading">Ý Tưởng Trang Trí Góc Nấu Ăn, Nhà Hàng</h2>
 <p>Góc nấu ăn mầm non cần thể hiện rõ 3 vai trò: đầu bếp, người phục vụ và khách hàng. Khác với góc gia đình, các vai trong góc nấu ăn có sự phân chia theo hoạt động phục vụ. Vì vậy, ngoài bộ đồ chơi nấu bếp, giáo viên cần bổ sung quầy gọi món hoặc bàn ghế để khách ngồi.</p>
 <p>Đồ dùng chính gồm nồi chảo, thực phẩm giả, khay bưng, tạp dề và mũ đầu bếp. Giáo viên cũng nên chuẩn bị thêm thực đơn và bảng thông báo món ăn trong ngày. Thẻ món ăn gắn bằng băng dính gai hoặc nam châm để dễ dàng thay đổi theo từng tuần. Thực đơn nên ưu tiên hình ảnh trực quan thay vì chữ viết, giúp trẻ nhận biết món ăn ngay cả khi chưa biết đọc.</p>
-<div class="vmx-goc splide vmx-goc--le" role="group" aria-label="Ý Tưởng Trang Trí Góc Nấu Ăn, Nhà Hàng – 7 ảnh">
-  <div class="splide__track">
-    <ul class="splide__list">
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nha-hang-ban-phuc-vu.webp" alt="Hai trẻ nhập vai ở bàn ăn cạnh vách góc lớp" width="800" height="600" /><figcaption>Bàn ăn và bát đĩa tạo tình huống phục vụ khách trong góc nhà hàng.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-bep-go.webp" alt="Trẻ thao tác tại góc nấu ăn với bếp gỗ" width="800" height="600" /><figcaption>Kệ bếp chia vị trí đặt dụng cụ và thực phẩm đồ chơi.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-noi-bia.webp" alt="Trẻ chơi nấu ăn với nồi và bếp bằng bìa" width="800" height="600" /><figcaption>Bìa carton được tận dụng thành bếp và nồi cho hoạt động nhập vai.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-ban-dung-cu.webp" alt="Trẻ đóng vai đầu bếp quanh bàn dụng cụ nhiều màu" width="800" height="600" /><figcaption>Nồi, bát và thực phẩm giả được gom trên bàn để trẻ dễ thao tác.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-thuc-pham-gia.webp" alt="Hai trẻ chuẩn bị món ăn bằng thực phẩm đồ chơi" width="800" height="600" /><figcaption>Thực phẩm giả và bộ bát đĩa tạo chuỗi hành động chế biến rồi phục vụ.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nha-hang-dau-bep.webp" alt="Trẻ làm đầu bếp và phục vụ tại góc nhà hàng" width="800" height="600" /><figcaption>Mũ đầu bếp và hai bàn chơi giúp trẻ nhận biết các vai trong nhà hàng.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-noi-chao.webp" alt="Trẻ sử dụng nồi chảo và rau củ trong góc bếp" width="800" height="600" /><figcaption>Các loại nồi chảo và thực phẩm đặt cùng nhóm phục vụ một lượt chơi nấu ăn.</figcaption></figure></li>
-    </ul>
+<div class="vmx-goc">
+  <div class="vmx-goc__main splide" aria-label="Ý Tưởng Trang Trí Góc Nấu Ăn, Nhà Hàng – 7 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nha-hang-ban-phuc-vu.webp" alt="Hai trẻ nhập vai ở bàn ăn cạnh vách góc lớp" width="800" height="600" /><figcaption>Bàn ăn và bát đĩa tạo tình huống phục vụ khách trong góc nhà hàng.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-bep-go.webp" alt="Trẻ thao tác tại góc nấu ăn với bếp gỗ" width="800" height="600" /><figcaption>Kệ bếp chia vị trí đặt dụng cụ và thực phẩm đồ chơi.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-noi-bia.webp" alt="Trẻ chơi nấu ăn với nồi và bếp bằng bìa" width="800" height="600" /><figcaption>Bìa carton được tận dụng thành bếp và nồi cho hoạt động nhập vai.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-ban-dung-cu.webp" alt="Trẻ đóng vai đầu bếp quanh bàn dụng cụ nhiều màu" width="800" height="600" /><figcaption>Nồi, bát và thực phẩm giả được gom trên bàn để trẻ dễ thao tác.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-thuc-pham-gia.webp" alt="Hai trẻ chuẩn bị món ăn bằng thực phẩm đồ chơi" width="800" height="600" /><figcaption>Thực phẩm giả và bộ bát đĩa tạo chuỗi hành động chế biến rồi phục vụ.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nha-hang-dau-bep.webp" alt="Trẻ làm đầu bếp và phục vụ tại góc nhà hàng" width="800" height="600" /><figcaption>Mũ đầu bếp và hai bàn chơi giúp trẻ nhận biết các vai trong nhà hàng.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-noi-chao.webp" alt="Trẻ sử dụng nồi chảo và rau củ trong góc bếp" width="800" height="600" /><figcaption>Các loại nồi chảo và thực phẩm đặt cùng nhóm phục vụ một lượt chơi nấu ăn.</figcaption></figure></li>
+      </ul>
+    </div>
+    <div class="splide__arrows">
+      <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+      <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+    </div>
   </div>
-  <div class="splide__arrows">
-    <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-    <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+  <div class="vmx-goc__thumbs splide" aria-label="Chọn ảnh – Ý Tưởng Trang Trí Góc Nấu Ăn, Nhà Hàng – 7 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nha-hang-ban-phuc-vu.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-bep-go.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-noi-bia.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-ban-dung-cu.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-thuc-pham-gia.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nha-hang-dau-bep.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nau-an-noi-chao.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+      </ul>
+    </div>
   </div>
+  <p class="vmx-goc__count" aria-hidden="true">1 / 7</p>
 </div>
 <p>Nếu góc nấu ăn tập trung vào chế biến và phục vụ, góc bác sĩ chuyển tình huống chơi sang chăm sóc và khám bệnh.</p>
 <h2 id="ftoc-heading-11" class="ftwp-heading">Ý Tưởng Trang Trí Góc Bác Sĩ</h2>
 <p>Góc bác sĩ mầm non nên chia thành 3 khu: khu chờ, khu khám và khu phát thuốc mô phỏng. Cách chia này giúp trẻ diễn được nhiều bước trong một lượt chơi, từ xếp hàng chờ đến khám và nhận thuốc.</p>
 <p>Đồ dùng gồm ghế chờ, bảng số thứ tự và giường khám. Ngoài ra, giáo viên nên chuẩn bị thêm ống nghe, nhiệt kế đồ chơi, bơm tiêm không kim, băng gạc, sổ khám, áo blouse và hộp thuốc rỗng để trẻ diễn trọn chuỗi chờ khám, khám bệnh và nhận thuốc. Giường khám có thể tận dụng bàn thấp rồi phủ khăn lên.</p>
 <p>Giáo viên tuyệt đối không đưa thuốc thật, kim tiêm hoặc vật sắc nhọn vào góc chơi, vì trẻ có thể nuốt phải thuốc hoặc bị kim và vật sắc nhọn gây thương tích.</p>
-<div class="vmx-goc splide" role="group" aria-label="Ý Tưởng Trang Trí Góc Bác Sĩ – 6 ảnh">
-  <div class="splide__track">
-    <ul class="splide__list">
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-ban-dung-cu.webp" alt="Trẻ đóng vai bác sĩ cạnh bàn dụng cụ khám bệnh" width="800" height="600" /><figcaption>Trang phục và bộ dụng cụ đồ chơi giúp trẻ nhận biết bối cảnh phòng khám.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-bang-thi-luc.webp" alt="Trẻ khám mắt ở góc bác sĩ có bảng thị lực" width="800" height="600" /><figcaption>Bảng thị lực bổ sung một thao tác cụ thể cho kịch bản khám bệnh.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-giuong-kham.webp" alt="Góc bệnh viện mô phỏng có giường khám và ghế chờ" width="800" height="600" /><figcaption>Bàn phủ khăn và ghế ngồi chia khu khám với vị trí chờ.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-tiep-nhan.webp" alt="Trẻ trao đổi tại bàn tiếp nhận của phòng khám" width="800" height="600" /><figcaption>Bàn tiếp nhận mở đầu chuỗi chờ khám, khám bệnh và nhận hướng dẫn.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-quay-thuoc.webp" alt="Trẻ chơi ở quầy thuốc mô phỏng trong phòng khám" width="800" height="600" /><figcaption>Biển quầy thuốc giúp phân biệt khu nhận thuốc với bàn khám bệnh.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-phong-kham-tim.webp" alt="Trẻ đóng vai bác sĩ tại bàn phòng khám tim mạch" width="800" height="600" /><figcaption>Biển tên và sổ khám làm rõ vai trò của từng vị trí trong góc chơi.</figcaption></figure></li>
-    </ul>
+<div class="vmx-goc">
+  <div class="vmx-goc__main splide" aria-label="Ý Tưởng Trang Trí Góc Bác Sĩ – 6 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-ban-dung-cu.webp" alt="Trẻ đóng vai bác sĩ cạnh bàn dụng cụ khám bệnh" width="800" height="600" /><figcaption>Trang phục và bộ dụng cụ đồ chơi giúp trẻ nhận biết bối cảnh phòng khám.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-bang-thi-luc.webp" alt="Trẻ khám mắt ở góc bác sĩ có bảng thị lực" width="800" height="600" /><figcaption>Bảng thị lực bổ sung một thao tác cụ thể cho kịch bản khám bệnh.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-giuong-kham.webp" alt="Góc bệnh viện mô phỏng có giường khám và ghế chờ" width="800" height="600" /><figcaption>Bàn phủ khăn và ghế ngồi chia khu khám với vị trí chờ.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-tiep-nhan.webp" alt="Trẻ trao đổi tại bàn tiếp nhận của phòng khám" width="800" height="600" /><figcaption>Bàn tiếp nhận mở đầu chuỗi chờ khám, khám bệnh và nhận hướng dẫn.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-quay-thuoc.webp" alt="Trẻ chơi ở quầy thuốc mô phỏng trong phòng khám" width="800" height="600" /><figcaption>Biển quầy thuốc giúp phân biệt khu nhận thuốc với bàn khám bệnh.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-phong-kham-tim.webp" alt="Trẻ đóng vai bác sĩ tại bàn phòng khám tim mạch" width="800" height="600" /><figcaption>Biển tên và sổ khám làm rõ vai trò của từng vị trí trong góc chơi.</figcaption></figure></li>
+      </ul>
+    </div>
+    <div class="splide__arrows">
+      <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+      <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+    </div>
   </div>
-  <div class="splide__arrows">
-    <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-    <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+  <div class="vmx-goc__thumbs splide" aria-label="Chọn ảnh – Ý Tưởng Trang Trí Góc Bác Sĩ – 6 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-ban-dung-cu.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-bang-thi-luc.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-giuong-kham.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-tiep-nhan.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-quay-thuoc.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-bac-si-phong-kham-tim.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+      </ul>
+    </div>
   </div>
+  <p class="vmx-goc__count" aria-hidden="true">1 / 6</p>
 </div>
 <p>Ngoài vai bác sĩ, giáo viên có thể mở rộng bối cảnh sang các nghề khác bằng cách thay trang phục và bộ dụng cụ tương ứng.</p>
 <h2 id="ftoc-heading-12" class="ftwp-heading">Ý Tưởng Trang Trí Các Góc Nghề Nghiệp Theo Chủ Điểm</h2>
@@ -4387,36 +4501,61 @@ var woocustom_reviews = {"ajaxurl":"https://website-demo-02.thcmedia.vn/wp-admin
 <figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-linh-cuu-hoa.webp" alt="Trẻ mặc trang phục lính cứu hỏa và cầm bình mô phỏng" width="800" height="600" /><figcaption>Trang phục và đạo cụ gợi tình huống cứu hỏa trong trò chơi nghề nghiệp.</figcaption></figure>
 <p>Bưu điện/giao hàng: Túi thư, phong bì, tem giả, và hộp hàng giúp trẻ thực hiện quy trình nhận, phân loại và phát hàng.</p>
 <p>Kỹ sư/sửa chữa: Mũ bảo hộ, thước đo, bản vẽ giấy và bộ dụng cụ nhựa giúp trẻ thực hiện các thao tác sửa chữa, đo đạc và phối hợp với góc phân vai bên cạnh trong cùng một kịch bản chơi.</p>
-<div class="vmx-goc splide" role="group" aria-label="Ý Tưởng Trang Trí Các Góc Nghề Nghiệp Theo Chủ Điểm – 2 ảnh">
-  <div class="splide__track">
-    <ul class="splide__list">
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nghe-nghiep-xay-dung.webp" alt="Nhóm trẻ đội mũ bảo hộ trong góc xây dựng" width="800" height="600" /><figcaption>Mũ bảo hộ và mô hình công trình minh họa một cách tổ chức vai nghề nghiệp.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ky-su-lap-ghep.webp" alt="Trẻ lắp ghép công trình bằng khối đồ chơi trong lớp" width="800" height="600" /><figcaption>Khối lắp ghép tạo điều kiện để trẻ thử tạo và điều chỉnh một công trình.</figcaption></figure></li>
-    </ul>
+<div class="vmx-goc">
+  <div class="vmx-goc__main splide" aria-label="Ý Tưởng Trang Trí Các Góc Nghề Nghiệp Theo Chủ Điểm – 2 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nghe-nghiep-xay-dung.webp" alt="Nhóm trẻ đội mũ bảo hộ trong góc xây dựng" width="800" height="600" /><figcaption>Mũ bảo hộ và mô hình công trình minh họa một cách tổ chức vai nghề nghiệp.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ky-su-lap-ghep.webp" alt="Trẻ lắp ghép công trình bằng khối đồ chơi trong lớp" width="800" height="600" /><figcaption>Khối lắp ghép tạo điều kiện để trẻ thử tạo và điều chỉnh một công trình.</figcaption></figure></li>
+      </ul>
+    </div>
+    <div class="splide__arrows">
+      <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+      <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+    </div>
   </div>
-  <div class="splide__arrows">
-    <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-    <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+  <div class="vmx-goc__thumbs splide" aria-label="Chọn ảnh – Ý Tưởng Trang Trí Các Góc Nghề Nghiệp Theo Chủ Điểm – 2 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-nghe-nghiep-xay-dung.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-ky-su-lap-ghep.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+      </ul>
+    </div>
   </div>
+  <p class="vmx-goc__count" aria-hidden="true">1 / 2</p>
 </div>
 <p>Bên cạnh các vai nghề nghiệp, góc chợ quê tạo bối cảnh mua bán gắn với vật dụng truyền thống và trò chơi dân gian.</p>
 <h2 id="ftoc-heading-13" class="ftwp-heading">Ý Tưởng Trang Trí Góc Chợ Quê Và Trò Chơi Dân Gian</h2>
 <p>Góc chợ quê mầm non giữ nguyên logic mua bán của góc siêu thị, nhưng thay đạo cụ hiện đại bằng các vật dụng truyền thống như mẹt, thúng, rổ, quang gánh, nón lá và chiếu cói. Hàng hóa gồm rau củ, hoa quả, bánh chưng, bánh tét, và các đồ thủ công mô phỏng khác.</p>
 <p>Giáo viên có thể kết hợp góc chơi với các trò chơi dân gian như ô ăn quan, chơi chuyền hoặc gói bánh theo từng chủ điểm. Trước mỗi đợt chơi, giáo viên cần kiểm tra kỹ đạo cụ, đặc biệt là dăm tre, nan bung, cạnh sắc và dây buộc để loại bỏ các chi tiết có thể gây trầy xước hoặc mắc vào trẻ.</p>
-<div class="vmx-goc splide vmx-goc--le" role="group" aria-label="Ý Tưởng Trang Trí Góc Chợ Quê Và Trò Chơi Dân Gian – 5 ảnh">
-  <div class="splide__track">
-    <ul class="splide__list">
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-gian-hang.webp" alt="Trẻ mua bán ở chợ quê có mái lá và rau củ" width="800" height="600" /><figcaption>Mái lá và giỏ hàng tạo bối cảnh chợ truyền thống thay cho quầy siêu thị.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-rau-cu.webp" alt="Trẻ trao đổi rau củ tại gian hàng chợ quê ngoài hiên" width="800" height="600" /><figcaption>Rổ rau củ được đặt trên bàn vừa tầm để trẻ thực hiện vai mua bán.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-mai-che.webp" alt="Gian hàng chợ quê có mái che và vật liệu truyền thống" width="800" height="600" /><figcaption>Không gian gian hàng kết hợp màu sắc chủ điểm với các loại hàng hóa mô phỏng.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/tro-choi-dan-gian-dap-nieu.webp" alt="Giáo viên hướng dẫn trẻ bịt mắt chơi trò dân gian" width="800" height="600" /><figcaption>Trò chơi dân gian có thể bổ sung hoạt động theo lượt bên cạnh khu chợ quê.</figcaption></figure></li>
-      <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/tro-choi-dan-gian-nhay-bao.webp" alt="Trẻ tham gia nhảy bao bố trong hoạt động tập thể" width="800" height="600" /><figcaption>Hoạt động dân gian mở rộng trải nghiệm của chủ điểm chợ quê ra không gian chơi chung.</figcaption></figure></li>
-    </ul>
+<div class="vmx-goc">
+  <div class="vmx-goc__main splide" aria-label="Ý Tưởng Trang Trí Góc Chợ Quê Và Trò Chơi Dân Gian – 5 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-gian-hang.webp" alt="Trẻ mua bán ở chợ quê có mái lá và rau củ" width="800" height="600" /><figcaption>Mái lá và giỏ hàng tạo bối cảnh chợ truyền thống thay cho quầy siêu thị.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-rau-cu.webp" alt="Trẻ trao đổi rau củ tại gian hàng chợ quê ngoài hiên" width="800" height="600" /><figcaption>Rổ rau củ được đặt trên bàn vừa tầm để trẻ thực hiện vai mua bán.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-mai-che.webp" alt="Gian hàng chợ quê có mái che và vật liệu truyền thống" width="800" height="600" /><figcaption>Không gian gian hàng kết hợp màu sắc chủ điểm với các loại hàng hóa mô phỏng.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/tro-choi-dan-gian-dap-nieu.webp" alt="Giáo viên hướng dẫn trẻ bịt mắt chơi trò dân gian" width="800" height="600" /><figcaption>Trò chơi dân gian có thể bổ sung hoạt động theo lượt bên cạnh khu chợ quê.</figcaption></figure></li>
+        <li class="splide__slide"><figure class="wp-caption aligncenter" style="width: 800px; max-width: 100%; margin: 24px auto; text-align: center;"><img loading="lazy" decoding="async" style="display: block; margin-left: auto; margin-right: auto; max-width: 100%; height: auto;" src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/tro-choi-dan-gian-nhay-bao.webp" alt="Trẻ tham gia nhảy bao bố trong hoạt động tập thể" width="800" height="600" /><figcaption>Hoạt động dân gian mở rộng trải nghiệm của chủ điểm chợ quê ra không gian chơi chung.</figcaption></figure></li>
+      </ul>
+    </div>
+    <div class="splide__arrows">
+      <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+      <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+    </div>
   </div>
-  <div class="splide__arrows">
-    <button class="splide__arrow splide__arrow--prev" type="button" aria-label="Ảnh trước"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-    <button class="splide__arrow splide__arrow--next" type="button" aria-label="Ảnh sau"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+  <div class="vmx-goc__thumbs splide" aria-label="Chọn ảnh – Ý Tưởng Trang Trí Góc Chợ Quê Và Trò Chơi Dân Gian – 5 ảnh">
+    <div class="splide__track">
+      <ul class="splide__list">
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-gian-hang.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-rau-cu.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/goc-cho-que-mai-che.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/tro-choi-dan-gian-dap-nieu.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+        <li class="splide__slide"><img src="https://website-demo-02.thcmedia.vn/wp-content/uploads/2026/10/tro-choi-dan-gian-nhay-bao.webp" alt="" width="80" height="60" loading="lazy" decoding="async"></li>
+      </ul>
+    </div>
   </div>
+  <p class="vmx-goc__count" aria-hidden="true">1 / 5</p>
 </div>
 <p>Các mẫu theo vai chơi gợi ý phần bối cảnh; để áp dụng vào lớp, giáo viên cần xác định vị trí, lối vào và khoảng chơi thực tế.</p>
 <h2 id="ftoc-heading-14" class="ftwp-heading">Cách Bố Trí Góc Phân Vai Trong Lớp Mầm Non</h2>
@@ -5464,41 +5603,70 @@ var e="script#wp-emoji-settings",t=document.querySelector(e);if(!(t instanceof H
 </div>
 <div id="body_overlay"></div>
 <script id="vmx-page-js">
-/* Ảnh mẫu từng góc phân vai — 27/10/2026.
-   < 992px: slider; ≥ 992px: Splide tự tắt, CSS xếp lưới 2 cột (cùng cách .single-post-related-splide).
+/* Ảnh mẫu từng góc phân vai — v2, 27/10/2026.
+   Mỗi cụm: slider ảnh chính (.vmx-goc__main) đồng bộ với hàng ảnh nhỏ (.vmx-goc__thumbs, chỉ hiện ≥ 992px).
+   < 992px: 1 ảnh + ảnh sau ló ra 15% + chấm trang; ≥ 992px: ảnh lớn 800px, bỏ chấm (đã có ảnh nhỏ + số đếm).
    Tạo bằng Splide GỐC (window.Splide.__thcOriginal): splide-autoplay.js của theme bọc window.Splide và
-   ép autoplay 4 giây cho mọi slider > 1 slide, kể cả khi truyền autoplay:false. Ảnh có chú thích cần
-   người đọc tự lướt nên không được tự chạy. */
+   ép autoplay 4 giây cho mọi slider > 1 slide, kể cả khi truyền autoplay:false — áp cho cả hàng ảnh nhỏ. */
 (function () {
   var Base = window.Splide && (window.Splide.__thcOriginal || window.Splide);
   if (!Base) return;
 
-  document.querySelectorAll('.vmx-goc').forEach(function (el) {
-    new Base(el, {
+  var i18n = {
+    prev: 'Ảnh trước',
+    next: 'Ảnh sau',
+    first: 'Về ảnh đầu',
+    last: 'Tới ảnh cuối',
+    slideX: 'Xem ảnh %s',
+    pageX: 'Tới ảnh %s',
+    carousel: 'bộ ảnh',
+    slide: 'ảnh',
+    select: 'Chọn ảnh để xem',
+    slideLabel: '%s / %s'
+  };
+
+  document.querySelectorAll('.vmx-goc').forEach(function (box) {
+    var mainEl = box.querySelector('.vmx-goc__main');
+    var thumbEl = box.querySelector('.vmx-goc__thumbs');
+    var countEl = box.querySelector('.vmx-goc__count');
+    if (!mainEl) return;
+
+    var main = new Base(mainEl, {
       type: 'slide',            // không 'loop' → không nhân bản ảnh trong DOM
       perPage: 1,
       perMove: 1,
       gap: '12px',
-      padding: { right: '15%' },
+      padding: { left: 0, right: '15%' },
       arrows: true,
       pagination: true,
       rewind: false,
       autoplay: false,
-      i18n: {
-        prev: 'Ảnh trước',
-        next: 'Ảnh sau',
-        first: 'Về ảnh đầu',
-        last: 'Tới ảnh cuối',
-        slideX: 'Tới ảnh %s',
-        pageX: 'Tới ảnh %s',
-        carousel: 'bộ ảnh',
-        slide: 'ảnh',
-        select: 'Chọn ảnh để xem',
-        slideLabel: '%s / %s'
-      },
+      i18n: i18n,
       mediaQuery: 'min',
-      breakpoints: { 992: { destroy: true } }
-    }).mount();
+      breakpoints: { 992: { padding: { left: 0, right: 0 }, pagination: false } }
+    });
+
+    var thumbs = thumbEl && new Base(thumbEl, {
+      isNavigation: true,
+      fixedWidth: 80,
+      fixedHeight: 60,
+      gap: 8,
+      arrows: false,
+      pagination: false,
+      rewind: false,
+      autoplay: false,
+      i18n: i18n
+    });
+
+    if (thumbs) main.sync(thumbs);
+    main.mount();
+    if (thumbs) thumbs.mount();
+
+    function setCount(index) {
+      if (countEl) countEl.textContent = (index + 1) + ' / ' + main.length;
+    }
+    setCount(main.index);
+    main.on('move', setCount);
   });
 })();
 </script>
